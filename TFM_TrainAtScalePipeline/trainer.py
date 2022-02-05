@@ -88,12 +88,17 @@ if __name__ == "__main__":
     # hold out
     # train
     # evaluate
+    print("######## Starting Model ########")
     train = Trainer(X, y, EXPERIMENT_NAME, MLFLOW_URI)
+    print("######## Setting Pipeline ########")
     train.set_pipeline()
+    print("######## Fitting Pipeline ########")
     train.run()
     train.mlflow_create_run()
     train.mlflow_log_param('model','Linear_regression')
     result = train.evaluate()
     train.mlflow_log_metric('rmse', result)
+    print("######## Saving Model ########")
     save_model(result)
+    print("######## Results ########")
     print(result)
