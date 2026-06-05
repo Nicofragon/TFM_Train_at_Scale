@@ -1,74 +1,40 @@
-# Data analysis
-- Document here the project: TFM_TrainAtScalePipeline
-- Description: Project Description
-- Data Source:
-- Type of analysis:
+# TFM — Train at Scale (Taxi Fare ML pipeline on GCP)
 
-Please document the project the better you can.
+An end-to-end, cloud-trained regression pipeline that predicts NYC taxi fares.
+The focus is the **engineering**: a packaged, reproducible training pipeline that
+reads data from Google Cloud Storage, tracks runs in MLflow, and ships the
+trained model back to GCS.
 
-# Startup the project
+## Approach
+- **Problem:** predict `fare_amount` from pickup/dropoff coordinates, datetime
+  and passenger count (NYC Taxi Fare dataset).
+- **Pipeline (scikit-learn):** custom transformers wired into a `ColumnTransformer`:
+  - `DistanceTransformer` — haversine distance between pickup/dropoff GPS points.
+  - `TimeFeaturesEncoder` — extracts day-of-week / hour / month / year (tz-aware),
+    then one-hot encodes them.
+  - `StandardScaler` on distance + `LinearRegression` as the estimator.
+- **Cloud / scale:** training data pulled from a **GCS bucket** (`gcsfs`); model
+  serialized with `joblib` and uploaded back to GCS; experiments logged to
+  **MLflow**; `Makefile` targets for `create_bucket`, `upload_data` and
+  `gcp_submit_training` (GCP AI Platform). Installable Python package with a
+  `…-run` entrypoint and a GitHub Actions CI skeleton.
+- **Validation:** train/test hold-out, metric = RMSE (`compute_rmse`).
 
-The initial setup.
+## Results
+- Trains and evaluates on GCP, logging **RMSE** to MLflow per run.
+- *(This repo stores the pipeline and the trained `model.joblib`, not a final
+  RMSE figure — the metric is logged to MLflow at train time.)*
 
-Create virtualenv and install the project:
+## Stack
+Python · scikit-learn · pandas · NumPy · joblib · MLflow · Google Cloud Storage
+(`gcsfs`, `google-cloud-storage`) · GCP AI Platform · Make · GitHub Actions
+
+## Run
 ```bash
-sudo apt-get install virtualenv python-pip python-dev
-deactivate; virtualenv ~/venv ; source ~/venv/bin/activate ;\
-    pip install pip -U; pip install -r requirements.txt
-```
-
-Unittest test:
-```bash
-make clean install test
-```
-
-Check for TFM_TrainAtScalePipeline in gitlab.com/{group}.
-If your project is not set please add it:
-
-- Create a new project on `gitlab.com/{group}/TFM_TrainAtScalePipeline`
-- Then populate it:
-
-```bash
-##   e.g. if group is "{group}" and project_name is "TFM_TrainAtScalePipeline"
-git remote add origin git@github.com:{group}/TFM_TrainAtScalePipeline.git
-git push -u origin master
-git push -u origin --tags
-```
-
-Functionnal test with a script:
-
-```bash
-cd
-mkdir tmp
-cd tmp
-TFM_TrainAtScalePipeline-run
-```
-
-# Install
-
-Go to `https://github.com/{group}/TFM_TrainAtScalePipeline` to see the project, manage issues,
-setup you ssh public key, ...
-
-Create a python3 virtualenv and activate it:
-
-```bash
-sudo apt-get install virtualenv python-pip python-dev
-deactivate; virtualenv -ppython3 ~/venv ; source ~/venv/bin/activate
-```
-
-Clone the project and install it:
-
-```bash
-git clone git@github.com:{group}/TFM_TrainAtScalePipeline.git
-cd TFM_TrainAtScalePipeline
 pip install -r requirements.txt
-make clean install test                # install and test
+make clean install test     # install package and run tests
+make run_locally            # train the pipeline locally
 ```
-Functionnal test with a script:
 
-```bash
-cd
-mkdir tmp
-cd tmp
-TFM_TrainAtScalePipeline-run
-```
+> _(2021–22, Le Wagon "Train at Scale" bootcamp project — my production work since
+> lives in private client repos. Trained on Le Wagon's shared GCP/MLflow infra.)_
